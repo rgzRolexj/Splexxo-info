@@ -6,6 +6,25 @@ const CACHE_TIME = 3600 * 1000; // 1 hour (ms)
 
 const cache = new Map();
 
+// Helper: recursively clean @oxmzoo from JSON
+function cleanOxmzoo(value) {
+  if (typeof value === "string") {
+    return value.replace(/@oxmzoo/gi, "").trim();
+  }
+  if (Array.isArray(value)) {
+    return value.map(cleanOxmzoo);
+  }
+  if (value && typeof value === "object") {
+    const cleaned = {};
+    for (const key of Object.keys(value)) {
+      if (key === "@oxmzoo") continue; // key hi remove
+      cleaned[key] = cleanOxmzoo(value[key]);
+    }
+    return cleaned;
+  }
+  return value;
+}
+
 module.exports = async (req, res) => {
   // Sirf GET allow
   if (req.method !== "GET") {
@@ -62,16 +81,20 @@ module.exports = async (req, res) => {
 
     try {
       // JSON parse try
-      const data = JSON.parse(raw);
+      let data = JSON.parse(raw);
+
+      // Saare data se @oxmzoo clean karo
+      data = cleanOxmzoo(data);
 
       // Apni clean branding
       data.developer = "splexxo";
-      data.powered_by = "splexxo API";
+      data.powered_by = "splexxo Info API";
 
       responseBody = JSON.stringify(data);
     } catch {
-      // Agar JSON nahi hai to jo aaya wahi bhej do
-      responseBody = raw;
+      // Agar JSON nahi hai to raw text me se bhi @oxmzoo hata do
+      const cleanedText = raw.replace(/@oxmzoo/gi, "").trim();
+      responseBody = cleanedText;
     }
 
     // Cache save
