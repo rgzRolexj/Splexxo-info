@@ -86,6 +86,11 @@ module.exports = async (req, res) => {
       // Saare data se @oxmzoo clean karo
       data = cleanOxmzoo(data);
 
+      // Yahan CREDIT BY fix kar rahe hain
+      if (!data.credit_by || String(data.credit_by).trim() === "") {
+        data.credit_by = "splexx"; // <- yahi text hamesha aayega
+      }
+
       // Apni clean branding
       data.developer = "splexxo";
       data.powered_by = "splexxo Info API";
