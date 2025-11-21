@@ -2,12 +2,9 @@ const http = require('http');
 const url = require('url');
 
 // ==================== CONFIG =====================
-const YOUR_API_KEYS = ["7139757137", "gavravrandigey"];
+const YOUR_API_KEYS = ["7139757137"];
 const TARGET_API = "https://ox-tawny.vercel.app/search_mobile";
-const CACHE_TIME = 3600 * 1000; // 1 hour cache
 // =================================================
-
-const cache = new Map();
 
 const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,23 +27,9 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: 'Invalid API key' }));
     }
 
-    // Cache check
-    const now = Date.now();
-    const cached = cache.get(mobile);
-    if (cached && now - cached.timestamp < CACHE_TIME) {
-        res.setHeader('X-Cache', 'HIT');
-        return res.end(cached.response);
-    }
-
     try {
         const fetch = (await import('node-fetch')).default;
-        const response = await fetch(`${TARGET_API}?mobile=${encodeURIComponent(mobile)}&api_key=gavravrandigey`, {
-            method: 'GET',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'application/json'
-            }
-        });
+        const response = await fetch(`${TARGET_API}?mobile=${encodeURIComponent(mobile)}&api_key=gavravrandigey`);
         
         if (!response.ok) {
             throw new Error(`API failed with status: ${response.status}`);
@@ -54,26 +37,15 @@ const server = http.createServer(async (req, res) => {
 
         const data = await response.json();
         
-        // Clean and enhance response
+        // Enhance response
         const finalData = {
             ...data,
             credit_by: "splexx",
             developer: "splexxo",
-            powered_by: "Mobile Info API",
-            timestamp: new Date().toISOString(),
-            cached: false
+            powered_by: "Splexxo Info API"
         };
 
-        const responseBody = JSON.stringify(finalData);
-
-        // Save to cache
-        cache.set(mobile, {
-            timestamp: now,
-            response: responseBody
-        });
-
-        res.setHeader('X-Cache', 'MISS');
-        res.end(responseBody);
+        res.end(JSON.stringify(finalData));
 
     } catch (error) {
         res.end(JSON.stringify({
@@ -86,7 +58,5 @@ const server = http.createServer(async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`📱 Mobile Info API running on port ${PORT}`);
-    console.log(`🔗 Usage: http://localhost:${PORT}/?mobile=9876543210`);
-    console.log(`🔗 Usage: http://localhost:${PORT}/?mobile=9876543210&key=7139757137`);
+    console.log(`🚀 Splexxo Info API running on port ${PORT}`);
 });
